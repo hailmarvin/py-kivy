@@ -6,6 +6,10 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen
 import os
+import client
+from kivy.clock import Clock
+import sys
+
 kivy.require("2.0.0")
 
 class ConnectPage(GridLayout):
@@ -55,7 +59,26 @@ class ConnectPage(GridLayout):
         info = f"Joining {ip}:{port} as {username}"
         chat_app.info_page.update_info(info)
         chat_app.screen_manager.current = 'Info'
+        Clock.schedule_once(self.connect, 1)
 
+
+    def connect(self, _):
+        IP = self.ip.text
+        PORT = int(self.port.text)
+        username = self.username.text
+
+        if not client.connect(IP, PORT, username, show_err):
+            return
+
+        chat_app.create_chat_page()
+        chat_app.screen_manager.current = "Chat"    
+
+class ChatPage(GridLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.cols = 1
+        self.add_widget(Label(text="It Works !!!!"))
 
 class InfoPage(GridLayout):
     def __init__(self, **kwargs):
@@ -90,6 +113,17 @@ class EpicApp(App):
         screen.add_widget(self.info_page)
         self.screen_manager.add_widget(screen)
         return self.screen_manager
+
+    def create_chat_page(self):
+        self.chat_page = ChatPage()
+        screen = Screen(name="Chat")
+        screen.add_widget(self.chat_page)
+        self.screen_manager.add_widget(screen)
+
+def show_err(msg):
+    chat_app.info_page.update_info(msg)
+    chat_app.screen_manager.current = "Info"
+    Clock.schedule_once(sys.exit, 10)
 
 if __name__ == '__main__':
     chat_app = EpicApp()
