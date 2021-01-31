@@ -5,6 +5,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.scrollview import ScrollView
+from kivy.core.window import Window
 import os
 import client
 from kivy.clock import Clock
@@ -73,12 +75,55 @@ class ConnectPage(GridLayout):
         chat_app.create_chat_page()
         chat_app.screen_manager.current = "Chat"    
 
+class ScrollableView(ScrollView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.layout = GridLayout(cols=1, size_hint_y=None)
+        self.add_widget(self.layout)
+
+        # Widget for chat history and scroll to widget
+        self.chat_history = Label(size_hint_y=None, markup=True)
+        self.scroll_to_point = Label
+
+        self.add_widget(self.chat_history)
+        self.add_widget(self.scroll_to_point)
+
+    # Called externally
+    def update_chat_history(self, message):
+        self.chat_history += '\n' + message
+
+        # Add padding
+        self.layout.height = self.chat_history.texture_size[1] +15            
+        self.chat_history.height = self.chat_history.texture_size[1]
+        self.chat_history.text_size = (self.chat_history.width * 0.98, None)
+
+        # Scroo to piont required because their is no inbuilt function for this
+        self.scroll_to(self.scroll_to_point)
+
 class ChatPage(GridLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self.cols = 1
-        self.add_widget(Label(text="It Works !!!!"))
+        self.rows = 2
+
+        # take 90% of height
+        self.history = Label(height = Window.size[1]*0.9, size_hint_y=None)
+        self.add_widget(self.history)
+
+        self.message = TextInput(width = Window.size[0]*0.8, size_hint_x=None, multiline=False)
+        self.send = Button(text="Send")
+        self.send.bind(on_press= self.send_message)
+
+        # Inserting two columns under one row
+        bottom_line = GridLayout(cols=2)
+        bottom_line.add_widget(self.message)
+        bottom_line.add_widget(self.send)
+        self.add_widget(bottom_line)
+
+    def send_message(self, _):
+        print("Sends Message")
 
 class InfoPage(GridLayout):
     def __init__(self, **kwargs):
