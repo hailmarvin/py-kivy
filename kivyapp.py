@@ -128,7 +128,7 @@ class ChatPage(GridLayout):
 
         # We also want to focus on our text input field
         Clock.schedule_once(self.focus_text_input, 1)
-        client.start_listening(self.incoming_message, show_error)
+        client.start_listening(self.incoming_message, show_err)
     
     def adjust_fields(self, *_):
         if Window.size[1] * 0.1 < 50:
