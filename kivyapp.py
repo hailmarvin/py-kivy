@@ -122,8 +122,59 @@ class ChatPage(GridLayout):
         bottom_line.add_widget(self.send)
         self.add_widget(bottom_line)
 
+        self.bind(size=self.adjust_fields)
+
+        Window.bind(on_key_down=self.on_key_down)
+
+        # We also want to focus on our text input field
+        Clock.schedule_once(self.focus_text_input, 1)
+        client.start_listening(self.incoming_message, show_error)
+    
+    def adjust_fields(self, *_):
+        if Window.size[1] * 0.1 < 50:
+            new_height = Window.size[1] - 50
+        else:
+            new_height = Window.size[1] * 0.9
+        self.history.height = new_height
+
+        if Window.size[0] * 0.2 < 160:
+            new_width = Window.size[0] - 160
+        else:
+            new_width = Window.size[0] * 0.8
+        self.new_message.width = new_width
+
+        # Update chat history layout
+        #self.history.update_chat_history_layout()
+        Clock.schedule_once(self.history.update_chat_history_layout, 0.01)
+
+    def on_key_down(self, instance, keyboard, keycode, text, modifiers):
+
+        # But we want to take an action only when Enter key is being pressed, and send a message
+        if keycode == 40:
+            self.send_message(None)
+
+    # Gets called when either Send button or Enter key is being pressed
     def send_message(self, _):
-        print("Sends Message")
+        #Clear input field
+        message = self.new_message.text
+        self.new_message.text = ''
+
+        # If there is any message - add it to chat history and send to the server
+        if message:
+            # Our messages - use red color for the name
+            self.history.update_chat_history(f'[color=dd2020]{chat_app.connect_page.username.text}[/color] > {message}')
+            client.send(message)
+
+        Clock.schedule_once(self.focus_text_input, 0.1)
+
+
+    # Sets focus to text input field
+    def focus_text_input(self, _):
+        self.new_message.focus = True
+
+    def incoming_message(self, username, message):
+        # Update chat history with username and message, green color for username
+        self.history.update_chat_history(f'[color=20dd20]{username}[/color] > {message}')
 
 class InfoPage(GridLayout):
     def __init__(self, **kwargs):
