@@ -27,7 +27,7 @@ def get_friends(username):
 
     return friends
 
-def followers(username):
+def get_followers(username):
     followers = []
     for follower in api.followers(username):
         followers.append(follower.screen_name)

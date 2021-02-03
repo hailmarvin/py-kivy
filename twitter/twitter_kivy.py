@@ -28,16 +28,21 @@ class HomePage(GridLayout):
         self.add_widget(self.info)
 
         self.followers = Button(text="Followers")
+        self.followers.bind(on_press= self.query("followers"))
         self.friends = Button(text="Friends")
+        self.friends.bind(on_press= self.query("friends"))
 
-        # Function is yet to be assigned 
         bottom = GridLayout(cols=2)
         bottom.add_widget(self.friends)
         bottom.add_widget(self.followers)
         self.add_widget(bottom)
+    
+    def query(self, instruct):
+        QueryPage(instruct)
+        twitter_app.screen_manager.current = "Query"
 
 class QueryPage(GridLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, instruct, **kwargs):
         super().__init__(**kwargs)
 
         self.cols = 1
@@ -45,9 +50,23 @@ class QueryPage(GridLayout):
 
         # take 90% of height
         self.info = Label(height = Window.size[1]*0.9, size_hint_y=None)
-        self.add_widget(self.info)
 
+        if instruct == "friends":
+            info = twitter_api.get_friends
+            # for x in info:
+            self.info += info
+        else:
+            info = twitter_api.get_followers
+            # for x in info:
+            self.info += info
+
+        self.add_widget(self.info)
         self.home = Button(text="Home")
+        self.home.bind(on_press= self.go_home)
+        self.add_widget(self.home)
+
+    def go_home(self):
+        twitter_app.screen_manager.current = "Home"
 
 class MainApp(App):
     def build(self):
@@ -58,8 +77,8 @@ class MainApp(App):
         screen.add_widget(self.connect_page)
         self.screen_manager.add_widget(screen)
 
-        #Query Page
-        self.info_page = QueryPage()
+        #Query Page with default argument
+        self.info_page = QueryPage("friends")
         screen = Screen(name='Query')
         screen.add_widget(self.info_page)
         self.screen_manager.add_widget(screen)
@@ -67,4 +86,5 @@ class MainApp(App):
         return self.screen_manager
 
 if __name__ == '__main__':
-    MainApp().run()
+    twitter_app = MainApp()
+    twitter_app.run()
